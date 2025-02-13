@@ -1,165 +1,149 @@
-# Foundry Template
+# VerifyRandVRF
 
-This is a template project to quickly bootstrap Ethereum application development using Foundry. Foundry is a blazing-fast, modular toolkit for Ethereum development written in Rust.
+## Overview
 
-This template provides a basic setup for using Foundry's tools like **Forge**, **Cast**, **Anvil**, and **Chisel**. Whether you are building, testing, deploying, or interacting with smart contracts, this template will give you a solid foundation.
+**VerifyRandVRF** is a smart contract designed to request and fulfill verifiable random numbers (VRF) on the Ethereum blockchain. The contract interacts with an external trusted contract (e.g., `verifyRand`) for fulfilling random word requests. It is designed to support requests for randomness while ensuring verifiability, making it a useful tool for applications such as gaming, lotteries, or any other use case requiring secure and random numbers.
 
-## Foundry
-
-**Foundry** is a fast, portable, and modular toolkit for Ethereum application development. It includes:
-
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat, and DappTools).
-- **Cast**: A Swiss army knife for interacting with EVM smart contracts, sending transactions, and getting chain data.
-- **Anvil**: A local Ethereum node, similar to Ganache or Hardhat Network.
-- **Chisel**: A fast, utilitarian Solidity REPL.
-
-## Documentation
-
-For detailed documentation, refer to the official Foundry book:
-[Foundry Documentation](https://book.getfoundry.sh/)
-
-## Project Setup
-
-To get started with this project, make sure you have **Foundry** installed. If not, follow the instructions in the official documentation to set it up.
-
-### Install Foundry
-
-First, install Foundry by running the following command:
-
-```shell
-curl -L https://foundry.paradigm.xyz | bash
-```
-
-Then, run the following command to install the necessary tools:
-
-```shell
-foundryup
-```
-
-## Install Pre-commit
-
-`pre-commit` is a tool to manage and maintain multi-language pre-commit hooks. It ensures that your code is checked before committing to the repository.
-
-Install `pre-commit` using `pipx`:
-
-```shell
-pipx install pre-commit
-```
-
-After installation, run the following command to set up `pre-commit` in your project:
-
-```shell
-pre-commit install
-```
-
-## Install Typos
-
-`typos` is a tool for spelling checks in your project. It helps catch common spelling mistakes in your codebase.
-
-Install `typos` with Cargo:
-
-```shell
-cargo install typos-cli
-```
-
-You can run it using:
-
-```shell
-typos
-```
-
-## Install Git Cliff
-
-`git-cliff` is a tool that generates changelogs from your commit history. It automatically creates a structured changelog for your project.
-
-To install `git-cliff`, run:
-
-```shell
-cargo install git-cliff
-```
-
-Generate a changelog using:
-
-```shell
-git cliff --output CHANGELOG.md
-```
-
-## Usage
-
-### Build the Project
-
-To build the project, run the following command:
-
-```shell
-forge build
-```
-
-### Run Tests
-
-To run tests, use the following command:
-
-```shell
-forge test
-```
-
-### Format Code
-
-To format your Solidity code, use:
-
-```shell
-forge fmt
-```
-
-### Take Gas Snapshots
-
-To take gas snapshots of your transactions, use:
-
-```shell
-forge snapshot
-```
-
-### Start Anvil (Local Ethereum Node)
-
-To start an Anvil instance, use:
-
-```shell
-anvil
-```
-
-### Deploy Contracts
-
-To deploy contracts using Foundry, use:
-
-```shell
-forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Use Cast for Interactions
-
-`cast` is a tool to interact with Ethereum smart contracts. You can use various subcommands:
-
-```shell
-cast <subcommand>
-```
-
-For more information about `cast`, run:
-
-```shell
-cast --help
-```
-
-## Help Commands
-
-For a list of available commands and options:
-
-- `forge --help`
-- `anvil --help`
-- `cast --help`
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+Additionally, the **VerifyRandVRFFactory** contract allows for the deployment of proxy contracts that are clones of the **VerifyRandVRF** contract, enabling scalable and cost-efficient deployment.
 
 ---
 
-**Happy Coding!** 🚀
+## Table of Contents
+
+1. [Contract: VerifyRandVRF](#contract-verifyrandvrf)
+   - [Features](#features)
+   - [Functions](#functions)
+2. [Contract: VerifyRandVRFFactory](#contract-verifyrandvrffactory)
+   - [Features](#features-1)
+   - [Functions](#functions-1)
+3. [Usage](#usage)
+4. [Deployment](#deployment)
+5. [Events](#events)
+6. [Requirements](#requirements)
+7. [License](#license)
+
+---
+
+## Contract: VerifyRandVRF
+
+### Features
+
+- **Request Random Numbers**: Allows the contract owner to request random numbers from an external trusted source.
+- **Fulfill Random Numbers**: Only the trusted `verifyRand` contract can fulfill the randomness request, ensuring security.
+- **Track Request Status**: Each random number request can be tracked by its ID, with the status showing whether it has been fulfilled.
+- **Admin Controls**: The contract owner can update the trusted `verifyRand` address to ensure it points to the correct randomness provider.
+
+### Functions
+
+#### `requestRandomWords(uint256 _requestId, uint256 _numWords)`
+
+- **Description**: Initiates a random word request.
+- **Access Control**: Can only be called by the owner of the contract.
+- **Parameters**:
+  - `_requestId` (uint256): The unique identifier for this request.
+  - `_numWords` (uint256): The number of random words to request.
+
+#### `fulfillRandomWords(uint256 _requestId, uint256[] memory _randomWords)`
+
+- **Description**: Fulfills a random words request.
+- **Access Control**: Can only be called by the `verifyRand` contract.
+- **Parameters**:
+  - `_requestId` (uint256): The ID of the request to fulfill.
+  - `_randomWords` (uint256[]): The array of random numbers to return.
+
+#### `getRequestStatus(uint256 _requestId) external view returns (bool fulfilled, uint256[] memory randomWords)`
+
+- **Description**: Retrieves the status and result of a specific random request.
+- **Parameters**:
+  - `_requestId` (uint256): The ID of the request.
+- **Returns**:
+  - `fulfilled` (bool): Indicates if the random words were fulfilled.
+  - `randomWords` (uint256[]): The random words generated for this request.
+
+#### `setVerifyRand(address _verifyRandAddress)`
+
+- **Description**: Allows the contract owner to set a new `verifyRand` address.
+- **Access Control**: Can only be called by the contract owner.
+- **Parameters**:
+  - `_verifyRandAddress` (address): The new address of the `verifyRand` contract.
+
+---
+
+## Contract: VerifyRandVRFFactory
+
+### Features
+
+- **Clone Contracts**: The factory contract enables the creation of clone contracts for the `VerifyRandVRF` contract, optimizing deployment costs by utilizing proxy patterns.
+- **Scalable Deployment**: Clones of the `VerifyRandVRF` contract can be created with customized `verifyRand` addresses and initialized with the sender’s address.
+
+### Functions
+
+#### `createProxy(address implementation, address verifyRandAddress) external returns (address)`
+
+- **Description**: Creates a proxy contract (clone) of the `VerifyRandVRF` implementation.
+- **Parameters**:
+  - `implementation` (address): The address of the `VerifyRandVRF` implementation contract.
+  - `verifyRandAddress` (address): The address of the `verifyRand` contract to fulfill the randomness request.
+- **Returns**:
+  - `mintProxyAddress` (address): The address of the newly created proxy contract.
+
+---
+
+## Usage
+
+1. Deploy the `VerifyRandVRF` contract, passing the owner address and `verifyRand` contract address during initialization.
+2. Use the `VerifyRandVRFFactory` contract to deploy clones of the `VerifyRandVRF` contract. Each clone is initialized with a custom `verifyRand` address.
+3. The owner of the contract can request random words via the `requestRandomWords` function.
+4. The `verifyRand` contract is responsible for fulfilling the random request with the `fulfillRandomWords` function.
+5. Track the status of the request with the `getRequestStatus` function.
+
+---
+
+## Deployment
+
+To deploy the contracts:
+
+1. Deploy the `VerifyRandVRF` contract on the desired network.
+2. Deploy the `VerifyRandVRFFactory` contract, ensuring it points to the `VerifyRandVRF` contract.
+3. Use the factory contract to create proxy contracts (clones) of the `VerifyRandVRF` contract.
+4. Initialize each proxy contract with the sender address and `verifyRand` address.
+
+---
+
+## Events
+
+### `RequestSent(uint256 requestId, uint256 _numWords, address current)`
+
+- **Description**: Emitted when a random word request is sent.
+- **Parameters**:
+  - `requestId` (uint256): The unique ID of the request.
+  - `_numWords` (uint256): The number of random words requested.
+  - `current` (address): The address that made the request.
+
+### `FillRandomWords(uint256 requestId, uint256[] randomWords)`
+
+- **Description**: Emitted when the random words are fulfilled.
+- **Parameters**:
+  - `requestId` (uint256): The ID of the request being fulfilled.
+  - `randomWords` (uint256[]): The random words generated for this request.
+
+### `ProxyCreated(address mintProxyAddress)`
+
+- **Description**: Emitted when a new proxy contract is created.
+- **Parameters**:
+  - `mintProxyAddress` (address): The address of the newly created proxy contract.
+
+---
+
+## Requirements
+
+- **Solidity Version**: `^0.8.20`
+- **OpenZeppelin Contracts**: Required for upgrades and proxy pattern implementations.
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
