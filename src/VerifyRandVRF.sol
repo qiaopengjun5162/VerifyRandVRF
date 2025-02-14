@@ -65,7 +65,7 @@ contract VerifyRandVRF is Initializable, OwnableUpgradeable {
     /**
      * @dev Modifier to ensure that only the verifyRand contract can fulfill random words.
      */
-    modifier onlyverifyRand() {
+    modifier onlyVerifyRand() {
         require(msg.sender == verifyRandAddress, "Only verifyRand can call this function");
         _;
     }
@@ -118,7 +118,7 @@ contract VerifyRandVRF is Initializable, OwnableUpgradeable {
      * @param _requestId The request ID for the random words.
      * @param _randomWords The array of random words to fulfill the request with.
      */
-    function fulfillRandomWords(uint256 _requestId, uint256[] memory _randomWords) external onlyverifyRand {
+    function fulfillRandomWords(uint256 _requestId, uint256[] memory _randomWords) external onlyVerifyRand {
         requestMapping[_requestId] = RequestStatus({fulfilled: true, randomWords: _randomWords});
         emit FillRandomWords(_requestId, _randomWords);
     }
